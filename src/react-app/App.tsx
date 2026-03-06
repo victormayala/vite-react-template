@@ -1,49 +1,66 @@
-export default {
-  async fetch(request) {
-    const url = new URL(request.url);
+// src/App.tsx
 
-    // Handle CORS preflight
-    if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers':
-            'authorization, x-client-info, apikey, content-type, x-tokenqo-token, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-        },
-      });
-    }
+import { useState } from "react";
+import reactLogo from "./assets/react.svg";
+import viteLogo from "/vite.svg";
+import cloudflareLogo from "./assets/Cloudflare_Logo.svg";
+import honoLogo from "./assets/hono.svg";
+import "./App.css";
 
-    const pathMap = {
-      '/v1/design-tokens': '/functions/v1/get-design-tokens',
-      '/v1/save-snapshot': '/functions/v1/save-snapshot',
-      '/v1/upload-brand-asset': '/functions/v1/upload-brand-asset',
-      '/v1/generate-json-config': '/functions/v1/generate-json-config',
-    };
+function App() {
+	const [count, setCount] = useState(0);
+	const [name, setName] = useState("unknown");
 
-    const targetPath = pathMap[url.pathname];
-    if (!targetPath) {
-      return new Response(JSON.stringify({ error: 'Not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-      });
-    }
+	return (
+		<>
+			<div>
+				<a href="https://vite.dev" target="_blank">
+					<img src={viteLogo} className="logo" alt="Vite logo" />
+				</a>
+				<a href="https://react.dev" target="_blank">
+					<img src={reactLogo} className="logo react" alt="React logo" />
+				</a>
+				<a href="https://hono.dev/" target="_blank">
+					<img src={honoLogo} className="logo cloudflare" alt="Hono logo" />
+				</a>
+				<a href="https://workers.cloudflare.com/" target="_blank">
+					<img
+						src={cloudflareLogo}
+						className="logo cloudflare"
+						alt="Cloudflare logo"
+					/>
+				</a>
+			</div>
+			<h1>Vite + React + Hono + Cloudflare</h1>
+			<div className="card">
+				<button
+					onClick={() => setCount((count) => count + 1)}
+					aria-label="increment"
+				>
+					count is {count}
+				</button>
+				<p>
+					Edit <code>src/App.tsx</code> and save to test HMR
+				</p>
+			</div>
+			<div className="card">
+				<button
+					onClick={() => {
+						fetch("/api/")
+							.then((res) => res.json() as Promise<{ name: string }>)
+							.then((data) => setName(data.name));
+					}}
+					aria-label="get name"
+				>
+					Name from API is: {name}
+				</button>
+				<p>
+					Edit <code>worker/index.ts</code> to change the name
+				</p>
+			</div>
+			<p className="read-the-docs">Click on the logos to learn more</p>
+		</>
+	);
+}
 
-    const targetUrl = `https://xhnxfeqswchetpzebxtx.supabase.co${targetPath}${url.search}`;
-
-    const modifiedRequest = new Request(targetUrl, {
-      method: request.method,
-      headers: request.headers,
-      body: request.body,
-    });
-
-    const response = await fetch(modifiedRequest);
-
-    const newResponse = new Response(response.body, response);
-    newResponse.headers.set('Access-Control-Allow-Origin', '*');
-    newResponse.headers.set('Access-Control-Allow-Headers',
-      'authorization, x-client-info, apikey, content-type, x-tokenqo-token');
-
-    return newResponse;
-  },
-};
+export default App;
